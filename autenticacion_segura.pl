@@ -1,33 +1,35 @@
-% usuario(NombreUsuario, Contraseña, Permisos).
-usuario(admin, 'admin123', alto).
-usuario(juan, 'juan456', medio).
-usuario(maria, 'maria789', bajo).
+% Declarar que `hecho/1` es un predicado dinámico
+:- dynamic hecho/1.
+% retractall(hecho(_)).  % Limpia todos los hechos
 
-% intento_fallido(NombreUsuario, Hora).
-intento_fallido(admin, '10:01').
-intento_fallido(admin, '10:02').
-intento_fallido(admin, '10:03').
-intento_fallido(admin, '10:04').
-intento_fallido(admin, '10:05').
+hecho(alta_tasa_intentos_login).
+hecho(misma_ip_repetida).
+% hecho(cpu_alta).
+% hecho(memoria_alta).
+hecho(usuarios_inexistentes_detectados).
+% hecho(tokens_invalidos).
+% hecho(tiempo_respuesta_lento).
 
-% Autenticación básica
-autenticar(NombreUsuario, Contraseña) :- usuario(NombreUsuario, Contraseña, _),
-    write('Acceso concedido al usuario: '), write(NombreUsuario), nl.
+% Regla 1: Fuerza bruta
+regla(posible_fuerza_bruta) :-
+    hecho(alta_tasa_intentos_login),
+    hecho(misma_ip_repetida),
+    hecho(usuarios_inexistentes_detectados).
 
-% Detectar posible ataque por fuerza bruta
-posible_fuerza_bruta(NombreUsuario) :- findall(Hora, intento_fallido(NombreUsuario, Hora), Intentos),
-    length(Intentos, N),
-    N >= 5,
-    write('Posible ataque de fuerza bruta detectado para usuario: '),
-    write(NombreUsuario), nl.
+% Regla 2: Ataque DDoS
+regla(posible_ddos) :-
+    hecho(alta_tasa_intentos_login),
+    hecho(tokens_invalidos),
+    hecho(tiempo_respuesta_lento).
 
-% Sugerir bloqueo
-sugerir_bloqueo(NombreUsuario) :- posible_fuerza_bruta(NombreUsuario),
-    write('Sugerencia: Bloquear temporalmente al usuario.'), nl.
+% Regla 3: Sobrecarga legítima
+regla(posible_sobrecarga_legitima) :-
+    hecho(cpu_alta),
+    hecho(memoria_alta),
+    hecho(usuarios_legitimos_activos).
 
-
-% Para provar despues
-
-% ?- autenticar(juan, 'juan456').
-% ?- posible_fuerza_bruta(admin).
-% ?- sugerir_bloqueo(admin).
+% Regla 4: Servidor requiere escalar
+regla(requiere_escalado) :-
+    hecho(cpu_alta),
+    hecho(memoria_alta),
+    hecho(tiempo_respuesta_lento).
